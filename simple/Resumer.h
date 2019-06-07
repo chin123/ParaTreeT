@@ -76,6 +76,9 @@ public:
     }
     waiting.erase(it);
   }
+  void getWaiting() {
+    CkPrintf("size of waiting: %d", waiting.size());
+  }
 };
 
 #endif // SIMPLE_RESUMER_H_

@@ -77,6 +77,7 @@ mainmodule simple {
   group Resumer {
     entry Resumer();
     entry void destroy();
+    entry void getWaiting();
     entry [expedited] void process(Key);
   };
   group Resumer<CentroidData>;

@@ -1,8 +1,8 @@
-CHARM_HOME ?= ~/charm/
+CHARM_HOME ?= ~/code/src/github.com/chin123/charm
 STRUCTURE_PATH = ../utility/structures
-OPTS = -g -I$(STRUCTURE_PATH) -DGROUPCACHE=0 -DDELAYLOCAL=0 -DCOUNT_INTRNS=0 -DDEBUG=0
+OPTS = -g -I$(STRUCTURE_PATH) -DGROUPCACHE=0 -DDELAYLOCAL=0 -DCOUNT_INTRNS=0 -DDEBUG=1
 CHARMC = $(CHARM_HOME)/bin/charmc $(OPTS)
-LD_LIBS = -L$(STRUCTURE_PATH) -lTipsy
+LD_LIBS = -L$(STRUCTURE_PATH) -lTipsy -ltirpc
 
 BINARY = simple
 OBJS = Main.o Reader.o Particle.o BoundingBox.o

@@ -6,6 +6,7 @@
 //#include <vector>
 #include "Vector3D.h"
 #include "SFC.h"
+#include "SPH_Kernel.h"
 
 /* Floating point type */
 #ifndef USE_DOUBLE_FP

@@ -5,6 +5,7 @@
 #include "common.h"
 #include <cmath>
 #include <vector>
+#include <iostream>
 #include <queue>
 //#include "ParticleComp.h"
 
@@ -12,34 +13,52 @@ struct DensityVisitor {
 // in leaf check for not same particle plz
 private:
   const int k = 32;
+  const Real radius = 100;
+  SPH::SplineKernel sp;
 private:
-  void prepNeighbors(TargetNode<CentroidData> target) {
-    for (int i = 0; i < target.n_particles; i++) {
-      particle_comp c (target.particles[i]);
-      std::priority_queue<Particle, std::vector<Particle>, particle_comp> pq (c);
-      target.data->neighbors.resize(target.n_particles, pq);
-    }
+
+  bool intersect(SourceNode<CentroidData>& source, TargetNode<CentroidData>& target) {
+    Real rsq = radius * radius;
+    Vector3D<Real> pos = source.data->getCentroid();
+    const OrientedBox<Real> box = target.data->box;
+    double dsq = 0.0;
+    double delta;
+
+    if((delta = box.lesser_corner.x - pos.x) > 0)
+	dsq += delta * delta;
+    else if((delta = pos.x - box.greater_corner.x) > 0)
+	dsq += delta * delta;
+    if(rsq < dsq)
+	return false;
+    if((delta = box.lesser_corner.y - pos.y) > 0)
+	dsq += delta * delta;
+    else if((delta = pos.y - box.greater_corner.y) > 0)
+	dsq += delta * delta;
+    if(rsq < dsq)
+	return false;
+    if((delta = box.lesser_corner.z - pos.z) > 0)
+	dsq += delta * delta;
+    else if((delta = pos.z - box.greater_corner.z) > 0)
+	dsq += delta * delta;
+    return (dsq <= rsq);
   }
 
 public:
   bool node(SourceNode<CentroidData> source, TargetNode<CentroidData> target) {
-    if (target.data->neighbors[0].size() < k) return true; // they all fill first k at the same time
-    Real dsq = (source.data->getCentroid() - target.data->getCentroid()).lengthSquared();
-    Real rsq = (target.data->neighbors[0].top().position - source.data->getCentroid()).lengthSquared();
-    // we need to look at the whole bounding box instead of just the centroid
-
-    return (dsq < rsq);
+    return intersect(source, target);
   }
 
   void leaf(SourceNode<CentroidData> source, TargetNode<CentroidData> target) {
-    if (!target.data->neighbors.size()) prepNeighbors(target);
     for (int i = 0; i < target.n_particles; i++) {
+      double density = 0;
       for (int j = 0; j < source.n_particles; j++) {
-        target.data->neighbors[i].push(source.particles[j]);
+        Vector3D<Real> diff = target.particles[i].position - source.particles[j].position;
+        if (diff.lengthSquared() <= radius * radius) {
+          Vector3D<Real> diff = source.particles[j].position - target.particles[i].position;
+          density += source.particles[j].mass * sp.evaluate(sqrt(diff.lengthSquared()), radius);
+        }
       }
-      while (target.data->neighbors[i].size() > k) {
-        target.data->neighbors[i].pop();
-      }
+      target.particles[i].density += density;
     }
   }
 };
